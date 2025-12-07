@@ -5,153 +5,91 @@
   <meta charset="UTF-8" />
   <title>MiniFood – Pick your Lunch</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Fonte moderna -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wghtplay=swap
   <style>
     body {
-      font-family: 'Inter', sans-serif;
-      background: #f9f9f9;
-      color: #333;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background: #2e7d32;
-      color: #fff;
-      text-align: center;
-      padding: 16px;
-      font-size: 1.5rem;
-      font-weight: 600;
-    }
-    main {
+      font-family: system-ui, sans-serif;
       max-width: 900px;
       margin: 24px auto;
-      padding: 0 16px;
+      padding: 0 12px;
     }
-    h2 {
-      margin-top: 24px;
-      font-size: 1.3rem;
-      font-weight: 600;
-    }
+    h1 { margin-bottom: 8px; }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 16px;
-      margin-top: 16px;
+      gap: 12px;
+      margin: 16px 0;
     }
     .card {
-      background: #fff;
+      border: 1px solid #e5e5e5;
       border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-      padding: 16px;
+      padding: 12px;
       text-align: center;
-      transition: transform 0.2s ease;
-    }
-    .card:hover {
-      transform: translateY(-4px);
-    }
-    .card h3 {
-      font-size: 1.1rem;
-      margin-bottom: 8px;
-    }
-    .card p {
-      margin: 4px 0;
     }
     button {
-      background: #2e7d32;
-      color: #fff;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
+      padding: 6px 10px;
       cursor: pointer;
-      font-size: 0.9rem;
-      transition: background 0.3s ease;
-    }
-    button:hover {
-      background: #256628;
-    }
-    button:disabled {
-      background: #ccc;
-      cursor: not-allowed;
     }
     .row {
       display: flex;
-      flex-wrap: wrap;
       gap: 12px;
-      margin-top: 16px;
       align-items: center;
+      flex-wrap: wrap;
     }
+    .muted { opacity: .7; }
     input[type="email"] {
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      width: 240px;
+      padding: 6px;
+      width: 260px;
     }
-    label {
-      font-size: 0.9rem;
-    }
-    #cartList {
-      list-style: none;
-      padding: 0;
-      margin: 12px 0;
-    }
-    #cartList li {
-      background: #fff;
-      padding: 8px 12px;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    label { user-select: none; }
+    .hr {
+      height: 1px;
+      background: #eee;
+      margin: 16px 0;
     }
     #msg {
-      margin-top: 12px;
-      font-weight: 600;
-      text-align: center;
+      font-weight: bold;
+      margin-top: 8px;
     }
   </style>
 </head>
 <body>
-  <header>🍝 MiniFood — Pick your Lunch</header>
-  <main>
-    <div class="row">
-      <button id="resetBtn">Reset Stock</button>
-      <span style="font-size:0.85rem;color:#666;">Backend: <code id="apiUrl"></code></span>
-    </div>
+  <h1>🍝 MiniFood — pick your lunch</h1>
 
-    <div id="meals" class="grid"></div>
+  <div class="row">
+    <button id="resetBtn">Reset stock</button>
+    <span class="muted">Backend: <code id="apiUrl"></code></span>
+  </div>
 
-    <h2>🛒 Cart</h2>
-    <ul id="cartList"></ul>
-    <p><strong>Total:</strong> € <span id="cartTotal">0.00</span></p>
+  <div id="meals" class="grid"></div>
 
-    <div class="row">
-      <input id="email" type="email" placeholder="Email" />
-      <label><input id="terms" type="checkbox" /> I accept the terms</label>
-      <button id="checkoutBtn">Checkout</button>
-    </div>
+  <div class="hr"></div>
+  <h2>Cart</h2>
+  <ul id="cartList"></ul>
 
-    <p id="msg"></p>
-  </main>
+  <div class="row">
+    <input id="email" type="email" placeholder="Email" />
+    <label><input id="terms" type="checkbox" /> I accept the terms</label>
+    <button id="checkoutBtn">Checkout</button>
+  </div>
+
+  <p class="muted" id="msg"></p>
 
   <script>
-    const API = "https://demominifood.onrender.com";
+    const API = "https://demominifood.onrender.com"; // ✅ URL ajustada
     document.getElementById("apiUrl").textContent = API;
 
     const mealsDiv = document.getElementById("meals");
     const cartList = document.getElementById("cartList");
-    const cartTotal = document.getElementById("cartTotal");
     const emailInput = document.getElementById("email");
     const termsInput = document.getElementById("terms");
     const msg = document.getElementById("msg");
 
     let meals = [];
-    let cart = [];
+    let cart = []; // {id, name, price, qty}
 
     function showMessage(text, isError = false) {
       msg.textContent = text;
-      msg.style.color = isError ? "crimson" : "#2e7d32";
+      msg.style.color = isError ? "crimson" : "inherit";
       if (text) setTimeout(() => (msg.textContent = ""), 4000);
     }
 
@@ -163,9 +101,9 @@
         card.innerHTML = `
           <h3>${m.name}</h3>
           <p>€ ${m.price.toFixed(2)}</p>
-          <p style="color:#666;font-size:0.85rem;">Stock: ${m.stock}</p>
+          <p class="muted">Stock: ${m.stock}</p>
           <button ${m.stock === 0 ? "disabled" : ""}>
-            ${m.stock === 0 ? "Out of stock" : "Add"}
+            ${m.stock === 0 ? "out of stock" : "Add"}
           </button>
         `;
         const btn = card.querySelector("button");
@@ -177,22 +115,14 @@
     function renderCart() {
       cartList.innerHTML = "";
       if (cart.length === 0) {
-        cartList.innerHTML = "<li style='color:#666;'>(empty)</li>";
-        cartTotal.textContent = "0.00";
+        cartList.innerHTML = "<li>(empty)</li>";
         return;
       }
-      let total = 0;
       cart.forEach(item => {
-        total += item.price * item.qty;
         const li = document.createElement("li");
-        li.innerHTML = `
-          <span>${item.name} x${item.qty}</span>
-          <button style="background:#e53935;">Remove</button>
-        `;
-        li.querySelector("button").onclick = () => removeFromCart(item.id);
+        li.textContent = `${item.name} x${item.qty}`;
         cartList.appendChild(li);
       });
-      cartTotal.textContent = total.toFixed(2);
     }
 
     async function loadMeals() {
@@ -215,15 +145,10 @@
         if (i >= 0) cart[i].qty += 1;
         else cart.push({ id: m.id, name: m.name, price: m.price, qty: 1 });
         renderCart();
-        showMessage("Added!");
+        showMessage("added!");
       } catch (e) {
         showMessage((e && (e.message || e.code)) || "Error", true);
       }
-    }
-
-    function removeFromCart(id) {
-      cart = cart.filter(c => c.id !== id);
-      renderCart();
     }
 
     async function resetStock() {
@@ -233,12 +158,12 @@
       termsInput.checked = false;
       await loadMeals();
       renderCart();
-      showMessage("Stock reset.");
+      showMessage("Reset Stock.");
     }
 
     async function checkout() {
       if (!emailInput.value.includes("@")) {
-        showMessage("Email is mandatory", true);
+        showMessage("Mail is mandatory", true);
         return;
       }
       if (!termsInput.checked) {
@@ -259,7 +184,7 @@
         const data = await res.json();
         if (!res.ok) throw data;
 
-        showMessage(`OK! Order ${data.orderId} total €${data.total}`);
+        showMessage(`OK! Your order ${data.orderId} total €${data.total}`);
         cart = [];
         emailInput.value = "";
         termsInput.checked = false;
