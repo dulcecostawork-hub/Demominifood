@@ -1,1 +1,9 @@
-{   "name": "mini-ecom-server",   "version": "1.0.0",   "type": "module",   "scripts": { "start": "node index.js" },   "dependencies": {     "cors": "^2.8.5",     "express": "^4.21.1"   } }
+{   "name": "mini-ecom-server",  
+  "version": "1.0.0",  
+  "type": "module",   
+  "scripts": 
+  { "start": "node index.js" }, 
+  "dependencies": 
+  {     "cors": "^2.8.5",    
+    "express": "^4.21.1"   }
+}
