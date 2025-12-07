@@ -5,50 +5,134 @@
   <meta charset="UTF-8" />
   <title>MiniFood – Pick your Lunch</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Tailwind CSS -->
-  https://cdn.tailwindcss.com</script>
+  <!-- Fonte moderna -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wghtplay=swap
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f9f9f9;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #2e7d32;
+      color: #fff;
+      text-align: center;
+      padding: 16px;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    main {
+      max-width: 900px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+    h2 {
+      margin-top: 24px;
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      padding: 16px;
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+    }
+    .card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+    .card p {
+      margin: 4px 0;
+    }
+    button {
+      background: #2e7d32;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #256628;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 16px;
+      align-items: center;
+    }
+    input[type="email"] {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 240px;
+    }
+    label {
+      font-size: 0.9rem;
+    }
+    #cartList {
+      list-style: none;
+      padding: 0;
+      margin: 12px 0;
+    }
+    #cartList li {
+      background: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    #msg {
+      margin-top: 12px;
+      font-weight: 600;
+      text-align: center;
+    }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
-  <!-- Header -->
-  <header class="bg-green-600 text-white p-4 text-center text-2xl font-bold shadow">
-    🍝 MiniFood — Pick your Lunch
-  </header>
-
-  <main class="max-w-5xl mx-auto p-6">
-    <!-- Backend Info -->
-    <div class="flex items-center justify-between mb-4">
-      <button id="resetBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
-        Reset Stock
-      </button>
-      <span class="text-sm text-gray-500">Backend: <code id="apiUrl"></code></span>
+<body>
+  <header>🍝 MiniFood — Pick your Lunch</header>
+  <main>
+    <div class="row">
+      <button id="resetBtn">Reset Stock</button>
+      <span style="font-size:0.85rem;color:#666;">Backend: <code id="apiUrl"></code></span>
     </div>
 
-    <!-- Meals Grid -->
-    <div id="meals" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
+    <div id="meals" class="grid"></div>
 
-    <!-- Divider -->
-    <hr class="my-6 border-gray-300" />
+    <h2>🛒 Cart</h2>
+    <ul id="cartList"></ul>
+    <p><strong>Total:</strong> € <span id="cartTotal">0.00</span></p>
 
-    <!-- Cart -->
-    <section class="bg-white shadow rounded p-4">
-      <h2 class="text-xl font-bold mb-4">🛒 Cart</h2>
-      <ul id="cartList" class="space-y-2 mb-4"></ul>
-      <p class="font-semibold">Total: € <span id="cartTotal">0.00</span></p>
-    </section>
-
-    <!-- Checkout -->
-    <div class="flex flex-wrap gap-4 mt-6">
-      <input id="email" type="email" placeholder="Email" class="border rounded px-3 py-2 w-64" />
-      <label class="flex items-center gap-2">
-        <input id="terms" type="checkbox" /> I accept the terms
-      </label>
-      <button id="checkoutBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-        Checkout
-      </button>
+    <div class="row">
+      <input id="email" type="email" placeholder="Email" />
+      <label><input id="terms" type="checkbox" /> I accept the terms</label>
+      <button id="checkoutBtn">Checkout</button>
     </div>
 
-    <!-- Message -->
-    <p id="msg" class="mt-4 font-semibold text-center"></p>
+    <p id="msg"></p>
   </main>
 
   <script>
@@ -67,7 +151,7 @@
 
     function showMessage(text, isError = false) {
       msg.textContent = text;
-      msg.className = isError ? "text-red-600 font-bold mt-4" : "text-green-600 font-bold mt-4";
+      msg.style.color = isError ? "crimson" : "#2e7d32";
       if (text) setTimeout(() => (msg.textContent = ""), 4000);
     }
 
@@ -75,13 +159,12 @@
       mealsDiv.innerHTML = "";
       meals.forEach(m => {
         const card = document.createElement("div");
-        card.className = "bg-white shadow rounded p-4 text-center hover:shadow-lg transition";
+        card.className = "card";
         card.innerHTML = `
-          <h3 class="text-lg font-semibold mb-2">${m.name}</h3>
-          <p class="text-gray-700 mb-1">€ ${m.price.toFixed(2)}</p>
-          <p class="text-sm text-gray-500 mb-3">Stock: ${m.stock}</p>
-          <button ${m.stock === 0 ? "disabled" : ""}
-            class="px-4 py-2 rounded text-white ${m.stock === 0 ? "bg-gray-400" : "bg-green-500 hover:bg-green-600"}">
+          <h3>${m.name}</h3>
+          <p>€ ${m.price.toFixed(2)}</p>
+          <p style="color:#666;font-size:0.85rem;">Stock: ${m.stock}</p>
+          <button ${m.stock === 0 ? "disabled" : ""}>
             ${m.stock === 0 ? "Out of stock" : "Add"}
           </button>
         `;
@@ -94,7 +177,7 @@
     function renderCart() {
       cartList.innerHTML = "";
       if (cart.length === 0) {
-        cartList.innerHTML = "<li class='text-gray-500'>(empty)</li>";
+        cartList.innerHTML = "<li style='color:#666;'>(empty)</li>";
         cartTotal.textContent = "0.00";
         return;
       }
@@ -102,10 +185,9 @@
       cart.forEach(item => {
         total += item.price * item.qty;
         const li = document.createElement("li");
-        li.className = "flex justify-between items-center bg-gray-100 p-2 rounded";
         li.innerHTML = `
           <span>${item.name} x${item.qty}</span>
-          <button class="text-red-500 hover:text-red-700">Remove</button>
+          <button style="background:#e53935;">Remove</button>
         `;
         li.querySelector("button").onclick = () => removeFromCart(item.id);
         cartList.appendChild(li);
