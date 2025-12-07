@@ -1,0 +1,206 @@
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <title>MiniFood – entrega de almoço</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 900px;
+      margin: 24px auto;
+      padding: 0 12px;
+    }
+    h1 { margin-bottom: 8px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .card {
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+    button {
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .muted { opacity: .7; }
+    input[type="email"] {
+      padding: 6px;
+      width: 260px;
+    }
+    label { user-select: none; }
+    .hr {
+      height: 1px;
+      background: #eee;
+      margin: 16px 0;
+    }
+    #msg {
+      font-weight: bold;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🍝 MiniFood — entrega de almoço</h1>
+
+  <div class="row">
+    <button id="resetBtn">Reset stock</button>
+    <span class="muted">Backend: <code id="apiUrl"></code></span>
+  </div>
+
+  <div id="meals" class="grid"></div>
+
+  <div class="hr"></div>
+  <h2>Carrinho</h2>
+  <ul id="cartList"></ul>
+
+  <div class="row">
+    <input id="email" type="email" placeholder="Email (obrigatório no FE)" />
+    <label><input id="terms" type="checkbox" /> Aceito os termos (obrigatório)</label>
+    <button id="checkoutBtn">Checkout</button>
+  </div>
+
+  <p class="muted" id="msg"></p>
+
+  <script>
+    const API = "https://demominifood.onrender.com"; // ✅ URL ajustada
+    document.getElementById("apiUrl").textContent = API;
+
+    const mealsDiv = document.getElementById("meals");
+    const cartList = document.getElementById("cartList");
+    const emailInput = document.getElementById("email");
+    const termsInput = document.getElementById("terms");
+    const msg = document.getElementById("msg");
+
+    let meals = [];
+    let cart = []; // {id, name, price, qty}
+
+    function showMessage(text, isError = false) {
+      msg.textContent = text;
+      msg.style.color = isError ? "crimson" : "inherit";
+      if (text) setTimeout(() => (msg.textContent = ""), 4000);
+    }
+
+    function renderMeals() {
+      mealsDiv.innerHTML = "";
+      meals.forEach(m => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <h3>${m.name}</h3>
+          <p>€ ${m.price.toFixed(2)}</p>
+          <p class="muted">Stock: ${m.stock}</p>
+          <button ${m.stock === 0 ? "disabled" : ""}>
+            ${m.stock === 0 ? "Esgotado" : "Adicionar"}
+          </button>
+        `;
+        const btn = card.querySelector("button");
+        btn.onclick = () => addToCart(m);
+        mealsDiv.appendChild(card);
+      });
+    }
+
+    function renderCart() {
+      cartList.innerHTML = "";
+      if (cart.length === 0) {
+        cartList.innerHTML = "<li>(vazio)</li>";
+        return;
+      }
+      cart.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = `${item.name} x${item.qty}`;
+        cartList.appendChild(li);
+      });
+    }
+
+    async function loadMeals() {
+      const res = await fetch(API + "/api/meals");
+      meals = await res.json();
+      renderMeals();
+    }
+
+    async function addToCart(m) {
+      try {
+        const res = await fetch(API + "/api/cart", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mealId: m.id, qty: 1 })
+        });
+        const data = await res.json();
+        if (!res.ok) throw data;
+
+        const i = cart.findIndex(c => c.id === m.id);
+        if (i >= 0) cart[i].qty += 1;
+        else cart.push({ id: m.id, name: m.name, price: m.price, qty: 1 });
+        renderCart();
+        showMessage("Adicionado!");
+      } catch (e) {
+        showMessage((e && (e.message || e.code)) || "Erro ao adicionar", true);
+      }
+    }
+
+    async function resetStock() {
+      await fetch(API + "/api/admin/reset", { method: "POST" });
+      cart = [];
+      emailInput.value = "";
+      termsInput.checked = false;
+      await loadMeals();
+      renderCart();
+      showMessage("Stock reposto.");
+    }
+
+    async function checkout() {
+      if (!emailInput.value.includes("@")) {
+        showMessage("Email obrigatório (validação no FE).", true);
+        return;
+      }
+      if (!termsInput.checked) {
+        showMessage("Tens de aceitar os termos.", true);
+        return;
+      }
+
+      const items = cart.map(c => ({ mealId: c.id, qty: c.qty }));
+      try {
+        const res = await fetch(API + "/api/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items,
+            customer: { email: emailInput.value, acceptTerms: termsInput.checked }
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw data;
+
+        showMessage(`OK! Encomenda ${data.orderId} total €${data.total}`);
+        cart = [];
+        emailInput.value = "";
+        termsInput.checked = false;
+        await loadMeals();
+        renderCart();
+      } catch (e) {
+        const m = e?.message || e?.code || "Falha no checkout";
+        showMessage(m + (e?.path ? ` (${e.path})` : ""), true);
+      }
+    }
+
+    document.getElementById("resetBtn").onclick = resetStock;
+    document.getElementById("checkoutBtn").onclick = checkout;
+
+    loadMeals();
+    renderCart();
+  </script>
+</body>
+</html>
