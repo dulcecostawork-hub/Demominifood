@@ -3,7 +3,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>MiniFood – entrega de almoço</title>
+  <title>MiniFood – Pick your Lunch</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
@@ -53,7 +53,7 @@
   </style>
 </head>
 <body>
-  <h1>🍝 MiniFood — entrega de almoço</h1>
+  <h1>🍝 MiniFood — pick your lunch</h1>
 
   <div class="row">
     <button id="resetBtn">Reset stock</button>
@@ -63,12 +63,12 @@
   <div id="meals" class="grid"></div>
 
   <div class="hr"></div>
-  <h2>Carrinho</h2>
+  <h2>Cart</h2>
   <ul id="cartList"></ul>
 
   <div class="row">
-    <input id="email" type="email" placeholder="Email (obrigatório no FE)" />
-    <label><input id="terms" type="checkbox" /> Aceito os termos (obrigatório)</label>
+    <input id="email" type="email" placeholder="Email" />
+    <label><input id="terms" type="checkbox" /> I accept the terms</label>
     <button id="checkoutBtn">Checkout</button>
   </div>
 
@@ -103,7 +103,7 @@
           <p>€ ${m.price.toFixed(2)}</p>
           <p class="muted">Stock: ${m.stock}</p>
           <button ${m.stock === 0 ? "disabled" : ""}>
-            ${m.stock === 0 ? "Esgotado" : "Adicionar"}
+            ${m.stock === 0 ? "out of stock" : "Add"}
           </button>
         `;
         const btn = card.querySelector("button");
@@ -145,9 +145,9 @@
         if (i >= 0) cart[i].qty += 1;
         else cart.push({ id: m.id, name: m.name, price: m.price, qty: 1 });
         renderCart();
-        showMessage("Adicionado!");
+        showMessage("added!");
       } catch (e) {
-        showMessage((e && (e.message || e.code)) || "Erro ao adicionar", true);
+        showMessage((e && (e.message || e.code)) || "Error", true);
       }
     }
 
@@ -158,16 +158,16 @@
       termsInput.checked = false;
       await loadMeals();
       renderCart();
-      showMessage("Stock reposto.");
+      showMessage("Reset Stock.");
     }
 
     async function checkout() {
       if (!emailInput.value.includes("@")) {
-        showMessage("Email obrigatório (validação no FE).", true);
+        showMessage("Mail is mandatory", true);
         return;
       }
       if (!termsInput.checked) {
-        showMessage("Tens de aceitar os termos.", true);
+        showMessage("Please accept the terms.", true);
         return;
       }
 
@@ -184,14 +184,14 @@
         const data = await res.json();
         if (!res.ok) throw data;
 
-        showMessage(`OK! Encomenda ${data.orderId} total €${data.total}`);
+        showMessage(`OK! Your order ${data.orderId} total €${data.total}`);
         cart = [];
         emailInput.value = "";
         termsInput.checked = false;
         await loadMeals();
         renderCart();
       } catch (e) {
-        const m = e?.message || e?.code || "Falha no checkout";
+        const m = e?.message || e?.code || "Checkout Failure";
         showMessage(m + (e?.path ? ` (${e.path})` : ""), true);
       }
     }
