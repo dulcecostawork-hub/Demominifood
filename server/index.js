@@ -13,10 +13,10 @@ let meals;
 
 function seed() {
   meals = [
-    { id: 1, name: "Massa à Bolonhesa", price: 11.9, stock: 5 },
-    { id: 2, name: "Salada Mediterrânica", price: 9.5, stock: 3 },
-    { id: 3, name: "Caril de Frango", price: 12.5, stock: 0 }, // esgotado p/ demo
-    { id: 4, name: "Hambúrguer Clássico", price: 10.9, stock: 8 },
+    { id: 1, name: "Pasta Bolognese", price: 11.9, stock: 5 },
+    { id: 2, name: "Cesar Salad", price: 9.5, stock: 3 },
+    { id: 3, name: "Chicken Curry", price: 12.5, stock: 0 }, // esgotado p/ demo
+    { id: 4, name: "Cheese Burger", price: 10.9, stock: 8 },
   ];
 }
 seed();
@@ -37,7 +37,7 @@ const totalOf = (items) =>
 // Health Check
 app.get("/api/health", (_, res) => res.json({ ok: true }));
 
-// Listar refeições
+// List Meals
 app.get("/api/meals", (_, res) => res.json(meals));
 
 /**
@@ -51,19 +51,19 @@ app.post("/api/cart", (req, res) => {
   if (!m)
     return res
       .status(404)
-      .json({ ok: false, code: "NOT_FOUND", message: "Prato não existe" });
+      .json({ ok: false, code: "NOT_FOUND", message: "This meal does not exist" });
 
   if (!Number.isInteger(qty) || qty < 1 || qty > 10) {
     return res
       .status(422)
-      .json({ ok: false, code: "INVALID_QTY", message: "qty deve ser 1..10" });
+      .json({ ok: false, code: "INVALID_QTY", message: "qty should be 1..10" });
   }
 
   if (m.stock < qty) {
     return res.status(409).json({
       ok: false,
       code: "OUT_OF_STOCK",
-      message: "Sem stock suficiente",
+      message: "Not enough stock for this order",
       available: m.stock,
     });
   }
@@ -85,7 +85,7 @@ app.post("/api/checkout", (req, res) => {
   if (items.length === 0) {
     return res
       .status(422)
-      .json({ ok: false, code: "INVALID_CART", message: "Carrinho vazio" });
+      .json({ ok: false, code: "INVALID_CART", message: "Empty Cart" });
   }
 
   for (const it of items) {
@@ -94,14 +94,14 @@ app.post("/api/checkout", (req, res) => {
       return res.status(404).json({
         ok: false,
         code: "NOT_FOUND",
-        message: `Prato ${it.mealId} não existe`,
+        message: `Meal ${it.mealId} does not exist`,
       });
 
     if (!Number.isInteger(it.qty) || it.qty < 1) {
       return res.status(422).json({
         ok: false,
         code: "INVALID_QTY",
-        message: "qty inválido",
+        message: "qty invalid",
         path: "items[].qty",
       });
     }
@@ -110,7 +110,7 @@ app.post("/api/checkout", (req, res) => {
       return res.status(409).json({
         ok: false,
         code: "OUT_OF_STOCK",
-        message: "Sem stock",
+        message: "No stock",
         details: { mealId: m.id, available: m.stock },
       });
     }
@@ -125,7 +125,7 @@ app.post("/api/checkout", (req, res) => {
     return res.status(412).json({
       ok: false,
       code: "TERMS_NOT_ACCEPTED",
-      message: "É necessário aceitar os termos",
+      message: "Accept Terms is mandatory to proceed",
     });
   }
 
@@ -134,7 +134,7 @@ app.post("/api/checkout", (req, res) => {
     return res.status(400).json({
       ok: false,
       code: "MIN_ORDER_NOT_MET",
-      message: "Encomenda mínima €10",
+      message: "Min Orders is €10",
       minimum: 10,
       total,
     });
