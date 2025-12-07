@@ -1,95 +1,73 @@
-p
+
 <!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
   <title>MiniFood – Pick your Lunch</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      max-width: 900px;
-      margin: 24px auto;
-      padding: 0 12px;
-    }
-    h1 { margin-bottom: 8px; }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 12px;
-      margin: 16px 0;
-    }
-    .card {
-      border: 1px solid #e5e5e5;
-      border-radius: 12px;
-      padding: 12px;
-      text-align: center;
-    }
-    button {
-      padding: 6px 10px;
-      cursor: pointer;
-    }
-    .row {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .muted { opacity: .7; }
-    input[type="email"] {
-      padding: 6px;
-      width: 260px;
-    }
-    label { user-select: none; }
-    .hr {
-      height: 1px;
-      background: #eee;
-      margin: 16px 0;
-    }
-    #msg {
-      font-weight: bold;
-      margin-top: 8px;
-    }
-  </style>
+  <!-- Tailwind CSS -->
+  https://cdn.tailwindcss.com</script>
 </head>
-<body>
-  <h1>🍝 MiniFood — pick your lunch</h1>
+<body class="bg-gray-50 text-gray-800">
+  <!-- Header -->
+  <header class="bg-green-600 text-white p-4 text-center text-2xl font-bold shadow">
+    🍝 MiniFood — Pick your Lunch
+  </header>
 
-  <div class="row">
-    <button id="resetBtn">Reset stock</button>
-    <span class="muted">Backend: <code id="apiUrl"></code></span>
-  </div>
+  <main class="max-w-5xl mx-auto p-6">
+    <!-- Backend Info -->
+    <div class="flex items-center justify-between mb-4">
+      <button id="resetBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+        Reset Stock
+      </button>
+      <span class="text-sm text-gray-500">Backend: <code id="apiUrl"></code></span>
+    </div>
 
-  <div id="meals" class="grid"></div>
+    <!-- Meals Grid -->
+    <div id="meals" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
 
-  <div class="hr"></div>
-  <h2>Cart</h2>
-  <ul id="cartList"></ul>
+    <!-- Divider -->
+    <hr class="my-6 border-gray-300" />
 
-  <div class="row">
-    <input id="email" type="email" placeholder="Email" />
-    <label><input id="terms" type="checkbox" /> I accept the terms</label>
-    <button id="checkoutBtn">Checkout</button>
-  </div>
+    <!-- Cart -->
+    <section class="bg-white shadow rounded p-4">
+      <h2 class="text-xl font-bold mb-4">🛒 Cart</h2>
+      <ul id="cartList" class="space-y-2 mb-4"></ul>
+      <p class="font-semibold">Total: € <span id="cartTotal">0.00</span></p>
+    </section>
 
-  <p class="muted" id="msg"></p>
+    <!-- Checkout -->
+    <div class="flex flex-wrap gap-4 mt-6">
+      <input id="email" type="email" placeholder="Email" class="border rounded px-3 py-2 w-64" />
+      <label class="flex items-center gap-2">
+        <input id="terms" type="checkbox" /> I accept the terms
+      </label>
+      <button id="checkoutBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+        Checkout
+      </button>
+    </div>
+
+    <!-- Message -->
+    <p id="msg" class="mt-4 font-semibold text-center"></p>
+  </main>
 
   <script>
-    const API = "https://demominifood.onrender.com"; // ✅ URL ajustada
+    const API = "https://demominifood.onrender.com";
     document.getElementById("apiUrl").textContent = API;
 
     const mealsDiv = document.getElementById("meals");
     const cartList = document.getElementById("cartList");
+    const cartTotal = document.getElementById("cartTotal");
     const emailInput = document.getElementById("email");
     const termsInput = document.getElementById("terms");
     const msg = document.getElementById("msg");
 
     let meals = [];
-    let cart = []; // {id, name, price, qty}
+    let cart = [];
 
     function showMessage(text, isError = false) {
       msg.textContent = text;
-      msg.style.color = isError ? "crimson" : "inherit";
+      msg.className = isError ? "text-red-600 font-bold mt-4" : "text-green-600 font-bold mt-4";
       if (text) setTimeout(() => (msg.textContent = ""), 4000);
     }
 
@@ -97,13 +75,14 @@ p
       mealsDiv.innerHTML = "";
       meals.forEach(m => {
         const card = document.createElement("div");
-        card.className = "card";
+        card.className = "bg-white shadow rounded p-4 text-center hover:shadow-lg transition";
         card.innerHTML = `
-          <h3>${m.name}</h3>
-          <p>€ ${m.price.toFixed(2)}</p>
-          <p class="muted">Stock: ${m.stock}</p>
-          <button ${m.stock === 0 ? "disabled" : ""}>
-            ${m.stock === 0 ? "out of stock" : "Add"}
+          <h3 class="text-lg font-semibold mb-2">${m.name}</h3>
+          <p class="text-gray-700 mb-1">€ ${m.price.toFixed(2)}</p>
+          <p class="text-sm text-gray-500 mb-3">Stock: ${m.stock}</p>
+          <button ${m.stock === 0 ? "disabled" : ""}
+            class="px-4 py-2 rounded text-white ${m.stock === 0 ? "bg-gray-400" : "bg-green-500 hover:bg-green-600"}">
+            ${m.stock === 0 ? "Out of stock" : "Add"}
           </button>
         `;
         const btn = card.querySelector("button");
@@ -115,14 +94,23 @@ p
     function renderCart() {
       cartList.innerHTML = "";
       if (cart.length === 0) {
-        cartList.innerHTML = "<li>(empty)</li>";
+        cartList.innerHTML = "<li class='text-gray-500'>(empty)</li>";
+        cartTotal.textContent = "0.00";
         return;
       }
+      let total = 0;
       cart.forEach(item => {
+        total += item.price * item.qty;
         const li = document.createElement("li");
-        li.textContent = `${item.name} x${item.qty}`;
+        li.className = "flex justify-between items-center bg-gray-100 p-2 rounded";
+        li.innerHTML = `
+          <span>${item.name} x${item.qty}</span>
+          <button class="text-red-500 hover:text-red-700">Remove</button>
+        `;
+        li.querySelector("button").onclick = () => removeFromCart(item.id);
         cartList.appendChild(li);
       });
+      cartTotal.textContent = total.toFixed(2);
     }
 
     async function loadMeals() {
@@ -145,10 +133,15 @@ p
         if (i >= 0) cart[i].qty += 1;
         else cart.push({ id: m.id, name: m.name, price: m.price, qty: 1 });
         renderCart();
-        showMessage("added!");
+        showMessage("Added!");
       } catch (e) {
         showMessage((e && (e.message || e.code)) || "Error", true);
       }
+    }
+
+    function removeFromCart(id) {
+      cart = cart.filter(c => c.id !== id);
+      renderCart();
     }
 
     async function resetStock() {
@@ -158,12 +151,12 @@ p
       termsInput.checked = false;
       await loadMeals();
       renderCart();
-      showMessage("Reset Stock.");
+      showMessage("Stock reset.");
     }
 
     async function checkout() {
       if (!emailInput.value.includes("@")) {
-        showMessage("Mail is mandatory", true);
+        showMessage("Email is mandatory", true);
         return;
       }
       if (!termsInput.checked) {
@@ -184,7 +177,7 @@ p
         const data = await res.json();
         if (!res.ok) throw data;
 
-        showMessage(`OK! Your order ${data.orderId} total €${data.total}`);
+        showMessage(`OK! Order ${data.orderId} total €${data.total}`);
         cart = [];
         emailInput.value = "";
         termsInput.checked = false;
